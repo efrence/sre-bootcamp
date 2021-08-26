@@ -25,8 +25,12 @@ def url_health():
 def url_login():
     username = request.form['username']
     password = request.form['password']
+    data = login.generate_token(username, password)
+    if data == False:
+        return jsonify({"error": 'invalid credentials'}), 403
+
     res = {
-        "data": login.generate_token(username, password)
+        "data": data
     }
     return jsonify(res)
 
@@ -34,9 +38,12 @@ def url_login():
 # # e.g. http://127.0.0.1:8000/protected
 @app.route("/protected")
 def url_protected():
-    auth_token = request.headers.get('Authorization')
+    auth_token = request.headers.get('Authorization').split()[1]
+    data = protected.access_data(auth_token)
+    if data == False:
+        return jsonify({"error": "You don't have the right permissions"}), 403
     res = {
-        "data": protected.access_data(auth_token)
+        "data": data
     }
     return jsonify(res)
 
